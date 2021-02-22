@@ -1,33 +1,62 @@
-name: Build and Deploy
-
+name: 'Continuous Integration'
 on:
   push:
-    branches: [ master ]
+    branches-ignore:
+      - 'production'
+    tags-ignore:
+      - '*'
+    paths-ignore:
+      - '.github/**'
+      - '!.github/workflows/ci.yml'
+      - '.travis.yml'
+      - '.gitignore'
+      - 'docs/**'
+      - 'README.md'
+      - 'LICENSE'
+  pull_request:
+    paths:
+      - '**'
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    env:
+      GEMS_PATH: ~/vendor/bundle
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.1
-        with: 
-          persist-credentials: false
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # for posts's lastmod
 
-      - name: Set Ruby 2.7
+      - name: Setup Ruby
         uses: actions/setup-ruby@v1
         with:
           ruby-version: 2.7
 
-      - name: Install and Build
-        run: |
-          gem install bundler
-          bundle install
-          bundle exec jekyll build
-        
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@3.6.2
+      - name: Bundle Caching
+        uses: actions/cache@v2
         with:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BRANCH: built
-          FOLDER: _site
-          CLEAN: true
+          path: ${{ env.GEMS_PATH }}
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Bundle Install
+        run: |
+          bundle config path ${{ env.GEMS_PATH }}
+          bundle install --jobs 4 --retry 3
+
+      - name: Build Site
+        env:
+          JEKYLL_ENV: production
+        run: |
+          bundle exec jekyll b
+
+      - name: Test Site
+        run: |
+          bash tools/test.sh
