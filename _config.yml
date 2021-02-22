@@ -1,17 +1,17 @@
-# ---------------- #
+﻿# ---------------- #
 #   Main Configs   #
 # ---------------- #
 baseurl:
-url: https://xiaoxin1900.club
+url: https://chellman.github.io
 date_format: "ordinal"
-title: XiaoXin1900's Blog
-subtitle: "I am XiaoXin1900"
+title: Chellman's Blog
+subtitle: "Chellman"
 description: "一个学生小白"
 keywords: XiaoXin1900, Student, Code
 timezone: Asia/JiangXi
 encoding: "utf-8"
 side_bar_repo_limit: 5
-repository: mzlogin/mzlogin.github.io
+repository: Chellman.github.io
 # 对 css 和 js 资源的 cdn 加速配置
 cdn:
     jsdelivr:
